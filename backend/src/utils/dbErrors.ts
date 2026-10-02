@@ -17,6 +17,11 @@ function findPgError(err: unknown): PgErrorLike | undefined {
     return undefined
 }
 
+// Postgres error code of `err` (e.g. "40P01" for a deadlock), if it is a database error.
+export function getPgErrorCode(err: unknown): string | undefined {
+    return findPgError(err)?.code
+}
+
 // Returns the violated constraint name if `err` is a unique violation, else undefined.
 export function getUniqueViolation(err: unknown): { constraint: string | undefined } | undefined {
     const pgError = findPgError(err)

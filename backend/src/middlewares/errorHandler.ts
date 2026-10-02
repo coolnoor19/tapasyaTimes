@@ -15,7 +15,11 @@ export function errorHandler(err: unknown, req: Request, res: Response, next: Ne
     if (res.headersSent) return next(err)
 
     if (err instanceof AppError) {
-        return res.status(err.statusCode).json({ message: err.message, ...(err.code ? { code: err.code } : {}) })
+        return res.status(err.statusCode).json({
+            message: err.message,
+            ...(err.code ? { code: err.code } : {}),
+            ...(err.details ? { details: err.details } : {}),
+        })
     }
 
     const bodyError = getBodyParserStatus(err)

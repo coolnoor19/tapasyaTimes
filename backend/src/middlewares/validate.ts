@@ -23,6 +23,20 @@ export function validate(schema: ZodType) {
     }
 }
 
+// Validates URL parameters such as /bookings/:id (a malformed id must be a 400, never a database error).
+export function validateParams(schema: ZodType) {
+    return (req: Request, res: Response, next: NextFunction) => {
+        const result = schema.safeParse(req.params)
+
+        if (!result.success) {
+            return next(new BadRequestError(describeIssues(result.error.issues)))
+        }
+
+        res.locals.params = result.data
+        next()
+    }
+}
+
 // Validates req.query. Express 5 makes req.query read-only, so the cleaned result
 // is placed in res.locals.query instead.
 export function validateQuery(schema: ZodType) {

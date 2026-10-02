@@ -8,19 +8,21 @@ const dateString = z
     .regex(/^\d{4}-\d{2}-\d{2}$/, "must be in YYYY-MM-DD format")
     .refine(isValidCalendarDate, "is not a real calendar date")
 
+// A list of real, distinct calendar days, at most MAX_BOOKING_DATES long.
+// Shared by the availability query and the booking body.
+export const dateListSchema = z
+    .array(dateString)
+    .min(1, "At least one date is required")
+    .max(MAX_BOOKING_DATES, `At most ${MAX_BOOKING_DATES} dates are allowed`)
+    .refine((list) => new Set(list).size === list.length, "Dates must not repeat")
+
 // Accepts both  ?dates=2026-08-11,2026-08-12  and  ?dates=2026-08-11&dates=2026-08-12
-const dates = z
+const queryDates = z
     .union([z.string(), z.array(z.string())])
     .transform((value) => (Array.isArray(value) ? value : [value]).flatMap((item) => item.split(",")))
-    .pipe(
-        z
-            .array(dateString)
-            .min(1, "At least one date is required")
-            .max(MAX_BOOKING_DATES, `At most ${MAX_BOOKING_DATES} dates are allowed`)
-            .refine((list) => new Set(list).size === list.length, "Dates must not repeat"),
-    )
+    .pipe(dateListSchema)
 
 export const availabilityQuerySchema = z.object({
-    dates,
+    dates: queryDates,
     timeSlotId: z.uuid("must be a valid id"),
 })

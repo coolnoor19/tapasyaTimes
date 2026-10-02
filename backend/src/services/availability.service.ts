@@ -32,6 +32,35 @@ interface AvailabilityQuery {
     timeSlotId: string
 }
 
+// Works with the normal connection or inside a transaction.
+type Executor = Pick<typeof db, "select">
+
+// Every (seat, date) already occupied for a slot among the given dates, optionally for one seat.
+// Dates are read as text so the driver cannot shift them across time zones.
+// Shared by the availability screen and booking creation, so both always agree.
+export async function findTakenDates(
+    executor: Executor,
+    opts: { timeSlotId: string; dates: string[]; seatId?: string },
+    now: Date,
+): Promise<{ seatId: string; bookingDate: string }[]> {
+    return executor
+        .select({ seatId: items.seatId, bookingDate: sql<string>`${items.bookingDate}::text` })
+        .from(items)
+        .innerJoin(bookings, eq(bookings.id, items.bookingId))
+        .where(
+            and(
+                eq(items.timeSlotId, opts.timeSlotId),
+                inArray(items.bookingDate, opts.dates),
+                ...(opts.seatId ? [eq(items.seatId, opts.seatId)] : []),
+                or(
+                    eq(items.status, "CONFIRMED"),
+                    // An unpaid hold only blocks the seat while its payment window is open.
+                    and(eq(items.status, "HELD"), or(isNull(bookings.expiresAt), gt(bookings.expiresAt, now))),
+                ),
+            ),
+        )
+}
+
 // A seat is selectable only if it is free on EVERY requested date for the slot.
 // `now` is injectable so time rules can be tested with a fixed clock.
 export async function getSeatAvailability(
@@ -62,23 +91,7 @@ export async function getSeatAvailability(
             .leftJoin(seatPricesTable, eq(seatPricesTable.seatType, seatsTable.seatType))
             .orderBy(asc(seatsTable.seatNumber)),
 
-        // Every (seat, date) already occupied for this slot among the requested dates.
-        // Dates are read as text so the driver cannot shift them across time zones.
-        db
-            .select({ seatId: items.seatId, bookingDate: sql<string>`${items.bookingDate}::text` })
-            .from(items)
-            .innerJoin(bookings, eq(bookings.id, items.bookingId))
-            .where(
-                and(
-                    eq(items.timeSlotId, slot.id),
-                    inArray(items.bookingDate, dates),
-                    or(
-                        eq(items.status, "CONFIRMED"),
-                        // An unpaid hold only blocks the seat while its payment window is open.
-                        and(eq(items.status, "HELD"), or(isNull(bookings.expiresAt), gt(bookings.expiresAt, now))),
-                    ),
-                ),
-            ),
+        findTakenDates(db, { timeSlotId: slot.id, dates }, now),
     ])
 
     const bookedBySeat = new Map<string, Set<string>>()
