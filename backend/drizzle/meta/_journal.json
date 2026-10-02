@@ -22,6 +22,20 @@
       "when": 1790917834111,
       "tag": "0002_login_lockout",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1790934909880,
+      "tag": "0003_audit_logs",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1790934912720,
+      "tag": "0004_time_slots_no_overlap",
+      "breakpoints": true
     }
   ]
 }

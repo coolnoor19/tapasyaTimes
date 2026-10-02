@@ -1,11 +1,12 @@
 import { afterAll, beforeEach, describe, expect, it } from "vitest"
-import { count } from "drizzle-orm"
+import { count, eq } from "drizzle-orm"
 import { createApp } from "../../src/app.js"
 import { db } from "../../src/db/index.js"
-import { bookingItemsTable, bookingsTable } from "../../src/db/schema.js"
+import { bookingItemsTable, bookingsTable, timeSlotsTable } from "../../src/db/schema.js"
+import { createBooking as createBookingService } from "../../src/services/booking.service.js"
 import { closeDb, hasTestDb, resetDb } from "../helpers/db.js"
 import { createVerifiedUser } from "../helpers/auth.js"
-import { createSeat } from "../helpers/factories.js"
+import { createBooking, createSeat, itemValues } from "../helpers/factories.js"
 import { futureDate, postBooking, setupWorld, tokenFor } from "../helpers/booking.js"
 
 const app = createApp()
@@ -47,6 +48,42 @@ describe.skipIf(!hasTestDb)("Idempotency-Key (safe retries)", () => {
         expect(new Set(results.map((r) => r.body.id)).size).toBe(1)
         expect(await rowCount(bookingsTable)).toBe(1)
         expect(await rowCount(bookingItemsTable)).toBe(3)
+    })
+
+    it("a retry that starts BEFORE the original commits but checks the seat AFTER it gets the original booking, not a conflict", async () => {
+        // Forces the exact interleaving (timing alone hit it only occasionally):
+        //  1. an "admin" holds a lock on the slot, so the retry stalls part-way through
+        //  2. the retry has already checked for the key (found nothing) and waits at the lock
+        //  3. the original booking is saved
+        //  4. the lock is released: the retry continues, finds the seat taken by...itself
+        const { seat, slot, user } = await setupWorld()
+        const input = { userId: user.id, seatId: seat.id, timeSlotId: slot.id, dates: [D1, D2], idempotencyKey: KEY }
+
+        let release!: () => void
+        const hold = new Promise<void>((resolve) => (release = resolve))
+        const locked = new Promise<void>((resolveLocked) => {
+            void db.transaction(async (tx) => {
+                // NO KEY UPDATE blocks a booking (which share-locks the slot) but not the foreign-key check
+                // of the original booking being saved while the lock is held.
+                await tx.select().from(timeSlotsTable).where(eq(timeSlotsTable.id, slot.id)).for("no key update")
+                resolveLocked()
+                await hold
+            })
+        })
+        await locked
+
+        const retry = createBookingService(input) // stalls on the slot lock
+        await new Promise((resolve) => setTimeout(resolve, 400))
+
+        const booking = await createBooking(user.id, { idempotencyKey: KEY, expiresAt: new Date(Date.now() + 10 * 60_000), status: "PENDING" })
+        await db.insert(bookingItemsTable).values([D1, D2].map((d) => itemValues(booking.id, seat.id, slot.id, d, { status: "HELD" })))
+
+        release()
+        const result = await retry
+
+        expect(result.replayed).toBe(true)
+        expect(result.booking.id).toBe(booking.id)
+        expect(await rowCount(bookingsTable)).toBe(1)
     })
 
     it("the date order of a retry does not matter", async () => {

@@ -65,24 +65,37 @@ export async function createBooking(
     const replay = await findIdempotentReplay(input, dates)
     if (replay) return { booking: replay, replayed: true }
 
+    // A request that fails because the seat is taken may in fact be a retry of a request that
+    // JUST succeeded (both started before either committed). With an Idempotency-Key, answer
+    // with the original booking instead of a conflict.
+    const replayIfRetry = async () => (input.idempotencyKey ? findIdempotentReplay(input, dates) : undefined)
+
     for (let attempt = 1; ; attempt++) {
         try {
             const booking = await db.transaction((tx) => runCreateTransaction(tx, input, dates, now))
             return { booking, replayed: false }
         } catch (err) {
-            if (err instanceof AppError) throw err
+            if (err instanceof AppError) {
+                if (err.code === "SEAT_TAKEN") {
+                    const raced = await replayIfRetry()
+                    if (raced) return { booking: raced, replayed: true }
+                }
+                throw err
+            }
 
             const retryable = attempt < MAX_ATTEMPTS
 
             // Two requests with the same Idempotency-Key raced: the loser returns the winner's booking.
             const unique = getUniqueViolation(err)
             if (unique?.constraint === IDEMPOTENCY_CONSTRAINT) {
-                const raced = await findIdempotentReplay(input, dates)
+                const raced = await replayIfRetry()
                 if (raced) return { booking: raced, replayed: true }
             }
 
             // The database refused a double booking: report which dates are taken.
             if (unique?.constraint === ITEM_CONSTRAINT) {
+                const raced = await replayIfRetry()
+                if (raced) return { booking: raced, replayed: true }
                 const conflict = await describeConflict(input, dates, now)
                 if (conflict) throw conflict
                 if (retryable) continue // the other booking vanished meanwhile; try again
@@ -99,10 +112,13 @@ export async function createBooking(
 }
 
 async function runCreateTransaction(tx: Tx, input: CreateBookingInput, dates: string[], now: Date): Promise<BookingView> {
+    // FOR SHARE: an admin cannot change or switch off this slot until this booking commits
+    // (and if they got there first, we wait for them and then see the new state).
     const [slot] = await tx
         .select()
         .from(timeSlotsTable)
         .where(and(eq(timeSlotsTable.id, input.timeSlotId), eq(timeSlotsTable.isActive, true)))
+        .for("share")
     if (!slot) throw new NotFoundError("Time slot not found")
 
     assertDatesBookable(dates, slot.startTime, now)

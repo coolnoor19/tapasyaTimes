@@ -301,6 +301,32 @@ export const verificationTokensTable = pgTable(
 )
 
 // ---------------------------------------------------------------------------
+// Audit log: who changed what (admin actions). Written in the same transaction as the change.
+// Only whitelisted, non-sensitive fields are ever stored in before/after.
+// ---------------------------------------------------------------------------
+
+export const auditLogsTable = pgTable(
+    "audit_logs",
+    {
+        id: id(),
+        // Kept (as null) if the actor account is ever removed, so the history survives.
+        actorId: uuid().references(() => usersTable.id, { onDelete: "set null" }),
+        action: varchar({ length: 60 }).notNull(),
+        targetType: varchar({ length: 30 }).notNull(),
+        // varchar, not uuid: a price row is identified by its seat type, not an id
+        targetId: varchar({ length: 64 }).notNull(),
+        before: jsonb(),
+        after: jsonb(),
+        createdAt: createdAt(),
+    },
+    (t) => [
+        index("audit_logs_created_idx").on(t.createdAt),
+        index("audit_logs_target_idx").on(t.targetType, t.targetId),
+        index("audit_logs_actor_idx").on(t.actorId),
+    ],
+)
+
+// ---------------------------------------------------------------------------
 // Relations (for Drizzle relational queries; the FKs above enforce integrity)
 // ---------------------------------------------------------------------------
 
