@@ -11,6 +11,7 @@ process.env.NODE_ENV = "test"
 process.env.DATABASE_URL = testUrl ?? "postgresql://test:test@127.0.0.1:1/test"
 process.env.HAS_TEST_DB = testUrl ? "1" : ""
 process.env.OTP_HMAC_SECRET = "test-only-otp-secret-0123456789abcdef"
+process.env.JWT_ACCESS_SECRET = "test-only-jwt-secret-0123456789abcdefghij"
 process.env.CORS_ORIGINS = "http://localhost:3000"
 process.env.TRUST_PROXY = "0"
 // Empty = "not set": emails are captured by the test mailbox, never sent.

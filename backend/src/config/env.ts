@@ -26,6 +26,9 @@ const envSchema = z
         // reveal them. Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
         OTP_HMAC_SECRET: z.string().min(32, "must be at least 32 characters"),
 
+        // Secret that signs access tokens (JWT). Different from OTP_HMAC_SECRET. Generate the same way.
+        JWT_ACCESS_SECRET: z.string().min(32, "must be at least 32 characters"),
+
         // Email (SMTP). Optional in development: without SMTP_HOST, emails are
         // printed to the terminal instead of being sent.
         SMTP_HOST: optionalString,

@@ -79,17 +79,30 @@ describe("rate limiting", () => {
         env.NODE_ENV = original
     })
 
-    it("blocks the 21st auth request in the window with 429", async () => {
+    it("shares one strict budget across register, login, verify-email and resend (an attacker cannot switch endpoints to get more guesses)", async () => {
         env.NODE_ENV = "development"
-        const send = () => request(app).post("/api/v1/auth/verify-email").send({ email: "x@example.com", code: "1" })
+        const verify = () => request(app).post("/api/v1/auth/verify-email").send({ email: "x@example.com", code: "1" })
 
         for (let i = 0; i < 20; i++) {
-            expect((await send()).status).toBe(400)
+            expect((await verify()).status).toBe(400)
         }
-        const blocked = await send()
+        const blocked = await verify()
 
         expect(blocked.status).toBe(429)
         expect(blocked.body).toEqual({ message: "Too many attempts, please try again later" })
+        // the same budget is already used up for the other password/code routes
+        expect((await request(app).post("/api/v1/auth/login").send({ email: "x" })).status).toBe(429)
+        expect((await request(app).post("/api/v1/auth/register").send({})).status).toBe(429)
+        expect((await request(app).post("/api/v1/auth/resend-verification").send({ email: "x" })).status).toBe(429)
+    })
+
+    it("does not apply the strict login limit to refresh, /me and logout (they run on every page load)", async () => {
+        env.NODE_ENV = "development"
+        for (let i = 0; i < 25; i++) {
+            expect((await request(app).get("/api/v1/auth/me")).status).toBe(401)
+            expect((await request(app).post("/api/v1/auth/refresh")).status).toBe(401)
+            expect((await request(app).post("/api/v1/auth/logout")).status).toBe(200)
+        }
     })
 
     it("does not rate limit unrelated routes with the stricter auth limit", async () => {

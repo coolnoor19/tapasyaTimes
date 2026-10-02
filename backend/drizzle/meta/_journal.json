@@ -15,6 +15,13 @@
       "when": 1790916608793,
       "tag": "0001_verification_attempts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790917834111,
+      "tag": "0002_login_lockout",
+      "breakpoints": true
     }
   ]
 }

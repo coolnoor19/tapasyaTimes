@@ -1,6 +1,7 @@
 import express from "express"
 import helmet from "helmet"
 import cors from "cors"
+import cookieParser from "cookie-parser"
 import { env } from "./config/env.js"
 import routes from "./routes/index.js"
 import { requestLogger } from "./middlewares/requestLogger.js"
@@ -21,6 +22,7 @@ export function createApp() {
     // The payment webhook (added later) needs the raw body for signature
     // verification, so it must be mounted before this JSON parser.
     app.use(express.json({ limit: "10kb" }))
+    app.use(cookieParser())
 
     app.use('/api/v1', routes)
 

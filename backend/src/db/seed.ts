@@ -64,13 +64,13 @@ async function seedAdmin() {
 
 async function seed() {
     const slots = await db.insert(timeSlotsTable).values(TIME_SLOTS).onConflictDoNothing().returning({ id: timeSlotsTable.id })
-    console.log(`Time slots: ${slots.length} added (${TIME_SLOTS.length - slots.length} already existed)`)
+    console.log(`Time slots:${slots.length} added (${TIME_SLOTS.length - slots.length} already existed)`)
 
     const seats = await db.insert(seatsTable).values([...SEATS]).onConflictDoNothing().returning({ id: seatsTable.id })
-    console.log(`Seats: ${seats.length} added (${SEATS.length - seats.length} already existed)`)
+    console.log(`Seats:${seats.length} added (${SEATS.length - seats.length} already existed)`)
 
     const prices = await db.insert(seatPricesTable).values([...SEAT_PRICES]).onConflictDoNothing().returning({ seatType: seatPricesTable.seatType })
-    console.log(`Seat prices: ${prices.length} added (${SEAT_PRICES.length - prices.length} already existed)`)
+    console.log(`Seat prices:${prices.length} added (${SEAT_PRICES.length - prices.length} already existed)`)
 
     await seedAdmin()
 }

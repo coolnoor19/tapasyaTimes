@@ -18,6 +18,7 @@ function loadEnv(overrides: Record<string, string>) {
                 NODE_ENV: "development",
                 DATABASE_URL: "postgresql://u:p@127.0.0.1:5432/db",
                 OTP_HMAC_SECRET: "x".repeat(40),
+                JWT_ACCESS_SECRET: "y".repeat(40),
                 SMTP_HOST: "",
                 SMTP_USER: "",
                 SMTP_PASS: "",

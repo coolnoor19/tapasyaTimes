@@ -84,6 +84,9 @@ export const usersTable = pgTable(
         role: roleEnum().notNull().default("USER"),
         status: userStatusEnum().notNull().default("ACTIVE"),
         isVerified: boolean().notNull().default(false),
+        // Login lockout: wrong passwords in a row, and when the lock ends.
+        failedLoginAttempts: integer().notNull().default(0),
+        lockedUntil: timestamp({ withTimezone: true }),
         createdAt: createdAt(),
         updatedAt: updatedAt(),
     },
