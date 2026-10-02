@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/ui/logo";
+import { HomeActions } from "@/features/auth/components/home-actions";
 import { siteConfig } from "@/config/site";
 
 // Placeholder. The real landing page is built in phase F2.
@@ -15,9 +16,12 @@ export default function HomePage() {
         <h1 className="max-w-2xl animate-fade-up text-4xl font-bold text-ink [animation-delay:80ms] sm:text-5xl">
           {siteConfig.tagline}
         </h1>
-        <p className="max-w-xl animate-fade-up text-muted [animation-delay:160ms]">The booking experience is on its way.</p>
+        <p className="max-w-xl animate-fade-up text-muted [animation-delay:160ms]">Pick your dates, choose your seat, walk in ready to work.</p>
+        <div className="animate-fade-up [animation-delay:240ms]">
+          <HomeActions />
+        </div>
         {showDesign && (
-          <Button asChild variant="secondary" className="animate-fade-up [animation-delay:240ms]">
+          <Button asChild variant="ghost" size="sm" className="animate-fade-up [animation-delay:320ms]">
             <Link href="/design">Open the style guide</Link>
           </Button>
         )}

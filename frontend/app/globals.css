@@ -158,6 +158,13 @@
   }
 }
 
+/* Edge and IE draw their own "show password" eye inside password fields. We have our own, so hide theirs
+   (otherwise there are two eyes side by side). */
+input::-ms-reveal,
+input::-ms-clear {
+  display: none;
+}
+
 /* Prices, counts and dates line up in columns */
 .tabular {
   font-variant-numeric: tabular-nums;
