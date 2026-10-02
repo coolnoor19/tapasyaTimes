@@ -1,5 +1,6 @@
 import express from "express"
 import { router as authRouter } from "./auth.routes.js"
+import { router as seatsRouter } from "./seats.routes.js"
 
 const router = express.Router()
 
@@ -8,5 +9,6 @@ router.get('/health' , (req ,res)=>{
 })
 
 router.use('/auth', authRouter)
+router.use('/seats', seatsRouter)
 
 export default router
