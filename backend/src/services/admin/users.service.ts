@@ -4,6 +4,7 @@ import { bookingsTable, refreshTokensTable, usersTable as users } from "../../db
 import { ConflictError } from "../../utils/errors/ConflictError.js"
 import { ForbiddenError } from "../../utils/errors/ForbiddenError.js"
 import { NotFoundError } from "../../utils/errors/NotFoundError.js"
+import { escapeLike } from "../../utils/sqlLike.js"
 import { recordAudit } from "./audit.service.js"
 
 type UserRow = typeof users.$inferSelect
@@ -21,9 +22,6 @@ const toUserView = (user: UserRow, now: Date) => ({
     isLocked: user.lockedUntil !== null && user.lockedUntil > now,
     createdAt: user.createdAt.toISOString(),
 })
-
-// Treat the search text literally: "%" and "_" are wildcards in LIKE, so escape them.
-const escapeLike = (text: string) => text.replace(/[\\%_]/g, (char) => `\\${char}`)
 
 const ADMIN_PROTECTED = () =>
     new ForbiddenError("Admin accounts cannot be changed through the API", "ADMIN_PROTECTED")

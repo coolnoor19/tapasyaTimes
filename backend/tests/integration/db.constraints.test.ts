@@ -203,10 +203,13 @@ describe.skipIf(!hasTestDb)("database rules", () => {
         it("refuses to delete a user who has bookings (history is protected)", async () => {
             const user = await createUser()
             await createBooking(user.id)
-            // 23001 = restrict_violation (what ON DELETE RESTRICT raises)
+            // ON DELETE RESTRICT raises 23001 (restrict_violation) or 23503 (foreign_key_violation)
+            // depending on the Postgres version; both mean "refused because of the bookings".
             await expect(db.delete(usersTable).where(eq(usersTable.id, user.id))).rejects.toSatisfy(
-                (err) => pgCode(err) === "23001",
+                (err) => ["23001", "23503"].includes(pgCode(err) ?? ""),
             )
+            const stillThere = await db.select({ id: usersTable.id }).from(usersTable).where(eq(usersTable.id, user.id))
+            expect(stillThere).toHaveLength(1)
         })
 
         it("stores booking_date as a plain calendar date with no timezone shift", async () => {

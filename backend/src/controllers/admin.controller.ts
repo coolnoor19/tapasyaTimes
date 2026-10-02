@@ -1,30 +1,9 @@
-import type { NextFunction, Request, RequestHandler, Response } from "express"
+import { handle } from "./handle.js"
 import { listAuditLogs } from "../services/admin/audit.service.js"
 import { setSeatPrice, listSeatPrices } from "../services/admin/prices.service.js"
 import { createSeat, listSeats, updateSeat } from "../services/admin/seats.service.js"
 import { createTimeSlot, listTimeSlots, updateTimeSlot } from "../services/admin/timeSlots.service.js"
 import { getUser, listUsers, setUserRole, setUserStatus } from "../services/admin/users.service.js"
-
-// Admin data is sensitive and changes often: never cache it.
-const noStore = (res: Response) => res.set("Cache-Control", "no-store")
-
-// Wraps a handler so any error goes to the error middleware, and reads the already-validated
-// pieces: res.locals.params (URL), res.locals.query (query string), req.body (JSON).
-type Ctx = { actorId: string; params: Record<string, string>; query: Record<string, unknown>; body: Record<string, unknown> }
-function handle(fn: (ctx: Ctx, res: Response) => Promise<{ status?: number; body: unknown }>): RequestHandler {
-    return async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const result = await fn(
-                { actorId: req.user!.id, params: res.locals.params ?? {}, query: res.locals.query ?? {}, body: req.body ?? {} },
-                res,
-            )
-            noStore(res)
-            res.status(result.status ?? 200).json(result.body)
-        } catch (err) {
-            next(err)
-        }
-    }
-}
 
 // ---- Seats ----
 export const listSeatsHandler = handle(async ({ query }) => ({

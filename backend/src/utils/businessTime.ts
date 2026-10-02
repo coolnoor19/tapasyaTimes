@@ -24,6 +24,22 @@ export function getBusinessNow(now: Date = new Date()): { date: string; time: st
     }
 }
 
+const toUtcMs = (date: string) => {
+    const [year, month, day] = date.split("-").map(Number) as [number, number, number]
+    return Date.UTC(year, month - 1, day)
+}
+
+// Calendar arithmetic on "YYYY-MM-DD" strings. Done in UTC on purpose: UTC has no daylight-saving
+// jumps, so a "day" is always exactly 24 hours here, whatever the server's own time zone is.
+export function addDays(date: string, days: number): string {
+    return new Date(toUtcMs(date) + days * 86_400_000).toISOString().slice(0, 10)
+}
+
+// Whole days from `from` to `to` (negative when `to` is earlier).
+export function daysBetween(from: string, to: string): number {
+    return Math.round((toUtcMs(to) - toUtcMs(from)) / 86_400_000)
+}
+
 // True only for real calendar days: rejects "2026-02-30" and "2027-02-29", accepts "2028-02-29".
 export function isValidCalendarDate(value: string): boolean {
     const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value)

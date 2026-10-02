@@ -35,6 +35,14 @@ interface AvailabilityQuery {
 // Works with the normal connection or inside a transaction.
 type Executor = Pick<typeof db, "select">
 
+// Which booking items currently occupy a seat: paid ones, and unpaid holds whose payment window is
+// still open. One definition, shared by availability, booking creation and the manager board.
+export const occupyingItemCondition = (now: Date) =>
+    or(
+        eq(items.status, "CONFIRMED"),
+        and(eq(items.status, "HELD"), or(isNull(bookings.expiresAt), gt(bookings.expiresAt, now))),
+    )
+
 // Every (seat, date) already occupied for a slot among the given dates, optionally for one seat.
 // Dates are read as text so the driver cannot shift them across time zones.
 // Shared by the availability screen and booking creation, so both always agree.
@@ -52,11 +60,7 @@ export async function findTakenDates(
                 eq(items.timeSlotId, opts.timeSlotId),
                 inArray(items.bookingDate, opts.dates),
                 ...(opts.seatId ? [eq(items.seatId, opts.seatId)] : []),
-                or(
-                    eq(items.status, "CONFIRMED"),
-                    // An unpaid hold only blocks the seat while its payment window is open.
-                    and(eq(items.status, "HELD"), or(isNull(bookings.expiresAt), gt(bookings.expiresAt, now))),
-                ),
+                occupyingItemCondition(now),
             ),
         )
 }

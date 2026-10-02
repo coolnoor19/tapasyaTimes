@@ -314,7 +314,7 @@ const toSlotView = (slot: { id: string; displayName: string; startTime: string; 
     endTime: slot.endTime.slice(0, 5),
 })
 
-type BookingRow = typeof bookings.$inferSelect & {
+export type BookingRow = typeof bookings.$inferSelect & {
     items: (typeof items.$inferSelect & {
         seat: typeof seatsTable.$inferSelect
         timeSlot: typeof timeSlotsTable.$inferSelect
@@ -322,7 +322,7 @@ type BookingRow = typeof bookings.$inferSelect & {
     user?: { id: string; firstName: string; lastName: string; email: string; phone: string }
 }
 
-function toBookingView(row: BookingRow, includeCustomer = false): BookingView {
+export function toBookingView(row: BookingRow, includeCustomer = false): BookingView {
     const sortedItems = [...row.items].sort((a, b) => a.bookingDate.localeCompare(b.bookingDate))
     const first = sortedItems[0]
 

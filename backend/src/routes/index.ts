@@ -4,6 +4,7 @@ import { router as seatsRouter } from "./seats.routes.js"
 import { router as timeSlotsRouter } from "./timeSlots.routes.js"
 import { router as bookingsRouter } from "./bookings.routes.js"
 import { router as adminRouter } from "./admin.routes.js"
+import { router as managerRouter } from "./manager.routes.js"
 
 const router = express.Router()
 
@@ -16,5 +17,6 @@ router.use('/seats', seatsRouter)
 router.use('/time-slots', timeSlotsRouter)
 router.use('/bookings', bookingsRouter)
 router.use('/admin', adminRouter)
+router.use('/manager', managerRouter)
 
 export default router
