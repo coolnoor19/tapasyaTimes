@@ -88,3 +88,74 @@ export function formatTime(time: string): string {
   const twelve = hours % 12 === 0 ? 12 : hours % 12;
   return `${twelve}:${String(minutes).padStart(2, "0")} ${suffix}`;
 }
+
+// ---------------------------------------------------------------------------
+// India clock, weekdays and months (used by the booking pages)
+// ---------------------------------------------------------------------------
+
+const IST_CLOCK = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "Asia/Kolkata",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+  hourCycle: "h23", // midnight is 00, never 24
+});
+
+// The current date ("YYYY-MM-DD") and time ("HH:MM:SS") in India: the clock the booking rules run on.
+// Same approach as the backend, so "has this slot started today?" gets the same answer on both sides.
+export function nowInIndia(now: Date = new Date()): { date: DateString; time: string } {
+  const parts = Object.fromEntries(IST_CLOCK.formatToParts(now).map((part) => [part.type, part.value]));
+  return { date: `${parts.year}-${parts.month}-${parts.day}`, time: `${parts.hour}:${parts.minute}:${parts.second}` };
+}
+
+// True only for real calendar days: rejects "2026-02-30", accepts "2028-02-29".
+export function isValidDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+  const [year, month, day] = [Number(match[1]), Number(match[2]), Number(match[3])];
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
+// 0 = Sunday ... 6 = Saturday
+export const weekdayOf = (date: DateString): number => new Date(toUtc(date)).getUTCDay();
+export const isWeekend = (date: DateString): boolean => weekdayOf(date) === 0 || weekdayOf(date) === 6;
+
+// "YYYY-MM"
+export type MonthKey = string;
+export const monthOf = (date: DateString): MonthKey => date.slice(0, 7);
+
+export function addMonths(month: MonthKey, count: number): MonthKey {
+  const [year, mon] = month.split("-").map(Number) as [number, number];
+  const index = year * 12 + (mon - 1) + count;
+  return `${Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, "0")}`;
+}
+
+// Every day of the month, in order (28 to 31 of them).
+export function datesInMonth(month: MonthKey): DateString[] {
+  const first = `${month}-01`;
+  const last = addDays(`${addMonths(month, 1)}-01`, -1);
+  return expandRange(first, last);
+}
+
+// The calendar widget works with JavaScript Dates. A day is given as local NOON, not midnight: some time zones
+// skip midnight on daylight-saving days, and noon is never skipped, so the day can never shift.
+export const toPickerDate = (date: DateString): Date => {
+  const [year, month, day] = date.split("-").map(Number) as [number, number, number];
+  return new Date(year, month - 1, day, 12);
+};
+// ...and back, using the same local reading, so the round trip is exact in any time zone.
+export const fromPickerDate = (date: Date): DateString =>
+  `${String(date.getFullYear()).padStart(4, "0")}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+
+// "09:00", "10:00" -> "9:00 – 10:00 AM"   |   "11:00", "13:30" -> "11:00 AM – 1:30 PM"
+// The AM/PM is said once when both ends share it, which is how people write a time range.
+export function formatTimeRange(start: string, end: string): string {
+  const from = formatTime(start);
+  const to = formatTime(end);
+  const fromSuffix = from.slice(-2);
+  return fromSuffix === to.slice(-2) ? `${from.slice(0, -3)} – ${to}` : `${from} – ${to}`;
+}
