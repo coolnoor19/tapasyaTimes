@@ -74,7 +74,25 @@
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
   --animate-pop: pop 0.38s var(--ease-spring) both;
   --animate-shake: shake 0.4s ease-in-out both;
+  --animate-accordion-down: accordion-down 0.28s var(--ease-out-expo);
+  --animate-accordion-up: accordion-up 0.22s ease-out;
 
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
   @keyframes fade-up {
     from {
       opacity: 0;

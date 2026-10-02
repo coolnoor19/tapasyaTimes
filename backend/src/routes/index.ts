@@ -5,6 +5,7 @@ import { router as timeSlotsRouter } from "./timeSlots.routes.js"
 import { router as bookingsRouter } from "./bookings.routes.js"
 import { router as adminRouter } from "./admin.routes.js"
 import { router as managerRouter } from "./manager.routes.js"
+import { router as publicRouter } from "./public.routes.js"
 
 const router = express.Router()
 
@@ -12,6 +13,7 @@ router.get('/health' , (req ,res)=>{
     res.status(200).json({ message: "API is healthy" })
 })
 
+router.use('/public', publicRouter)
 router.use('/auth', authRouter)
 router.use('/seats', seatsRouter)
 router.use('/time-slots', timeSlotsRouter)
