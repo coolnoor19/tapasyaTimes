@@ -289,6 +289,8 @@ export const verificationTokensTable = pgTable(
         tokenHash: varchar({ length: 64 }).notNull().unique(),
         purpose: verificationPurposeEnum().notNull(),
         expiresAt: timestamp({ withTimezone: true }).notNull(),
+        // Wrong-guess counter for 6-digit codes; the code is dead after too many tries.
+        attempts: integer().notNull().default(0),
         usedAt: timestamp({ withTimezone: true }),
         createdAt: createdAt(),
     },
