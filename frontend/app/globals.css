@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Tapasya Times design tokens.
+   Blue = trust / structure, green = success / "yours" (selected seat, confirmed).
+   Every colour in the app comes from here: change a token, the whole UI follows.
+   --------------------------------------------------------------------------- */
+@theme {
+  /* Fonts (loaded in app/layout.tsx) */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* Brand blue */
+  --color-brand-50: #eff5ff;
+  --color-brand-100: #dbe8fe;
+  --color-brand-200: #bed6fd;
+  --color-brand-300: #8fb8fa;
+  --color-brand-400: #5a93f5;
+  --color-brand-500: #3374ec;
+  --color-brand-600: #1f58d8;
+  --color-brand-700: #1c46b8;
+  --color-brand-800: #1c3a94;
+  --color-brand-900: #1b3377;
+  --color-brand-950: #12204d;
+
+  /* Leaf green */
+  --color-leaf-50: #ecfdf4;
+  --color-leaf-100: #d1fae4;
+  --color-leaf-200: #a6f3cb;
+  --color-leaf-300: #6ee7ad;
+  --color-leaf-400: #34d38a;
+  --color-leaf-500: #14b86f;
+  --color-leaf-600: #0a9a5a;
+  --color-leaf-700: #087a4a;
+  --color-leaf-800: #0a613d;
+  --color-leaf-900: #0a5033;
+
+  /* Neutrals: a cool, slightly blue slate so greys sit well next to the brand blue */
+  --color-canvas: #f5f8fc;
+  --color-surface: #ffffff;
+  --color-ink: #0e1c38;
+  --color-muted: #566782;
+  --color-subtle: #8393ad;
+  --color-line: #e2e9f3;
+  --color-line-strong: #cbd6e6;
+
+  /* Feedback */
+  --color-danger-50: #fef2f2;
+  --color-danger-600: #d92d3a;
+  --color-danger-700: #b4232f;
+  --color-warn-50: #fff8eb;
+  --color-warn-600: #b86a06;
+
+  /* One colour per seat tier, so a tier is recognisable everywhere (seat map, badges, prices) */
+  --color-tier-executive: #1f58d8;
+  --color-tier-professional: #0e8f9c;
+  --color-tier-study: #0a9a5a;
+
+  /* Shape and depth */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  --shadow-card: 0 1px 2px rgb(14 28 56 / 0.04), 0 4px 16px rgb(14 28 56 / 0.05);
+  --shadow-pop: 0 8px 30px rgb(14 28 56 / 0.14);
+  --shadow-ring: 0 0 0 4px rgb(31 88 216 / 0.18);
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --animate-fade-up: fade-up 0.5s var(--ease-out-expo) both;
+  --animate-fade-in: fade-in 0.3s ease-out both;
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  --animate-pop: pop 0.38s var(--ease-spring) both;
+  --animate-shake: shake 0.4s ease-in-out both;
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+  @keyframes pop {
+    0% {
+      transform: scale(0.8);
+    }
+    60% {
+      transform: scale(1.12);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+  @keyframes shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    20%,
+    60% {
+      transform: translateX(-5px);
+    }
+    40%,
+    80% {
+      transform: translateX(5px);
+    }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-canvas);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+  body {
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.015em;
+  }
+  /* A clear focus ring for keyboard users, none for mouse clicks */
+  :focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-brand-200);
+  }
+}
+
+/* Prices, counts and dates line up in columns */
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* People who ask their system for less motion get none. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
