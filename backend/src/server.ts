@@ -1,12 +1,22 @@
-import "dotenv/config"
+import { env } from "./config/env.js"
+import { db } from "./db/index.js"
 import { createApp } from "./app.js"
+import { logger } from "./utils/logger.js"
 
-async function startServer() {
-    const app = createApp();
+function startServer() {
+    const app = createApp()
 
-    const PORT = process.env.PORT || 3005;
-    app.listen(PORT, () => console.log(`Server started on port ${PORT}`));
+    const server = app.listen(env.PORT, () => logger.info(`Server started on port ${env.PORT}`))
 
+    // Let in-flight requests finish and release DB connections on shutdown.
+    const shutdown = (signal: string) => {
+        logger.info(`${signal} received, shutting down`)
+        server.close(() => {
+            void db.$client.end().finally(() => process.exit(0))
+        })
+    }
+    process.on("SIGTERM", () => shutdown("SIGTERM"))
+    process.on("SIGINT", () => shutdown("SIGINT"))
 }
 
-startServer();
+startServer()

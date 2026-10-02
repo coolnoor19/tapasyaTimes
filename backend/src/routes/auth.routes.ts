@@ -2,8 +2,11 @@ import express from "express"
 import { validate } from "../middlewares/validate.js"
 import { registerSchema, loginSchema } from "../validators/auth.validator.js"
 import { registerUserHandler } from "../controllers/auth.controller.js"
+import { authLimiter } from "../middlewares/rateLimiters.js"
 
 export const router = express.Router()
+
+router.use(authLimiter)
 
 router.post('/register', validate(registerSchema), registerUserHandler)
 
