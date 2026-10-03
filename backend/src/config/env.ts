@@ -21,6 +21,8 @@ const envSchema = z
         // Number of reverse proxies in front of the app (0 = none). Needed so rate
         // limiting sees the real client IP instead of the proxy's IP.
         TRUST_PROXY: z.coerce.number().int().min(0).default(0),
+        // A request that takes longer than this (milliseconds) is written to the log as a "slow request" warning.
+        SLOW_REQUEST_MS: z.coerce.number().int().positive().default(1000),
 
         // Secret used to hash one-time codes, so a leaked database alone cannot
         // reveal them. Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
