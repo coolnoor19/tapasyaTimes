@@ -1,6 +1,8 @@
 // One place that talks to the backend. Features call `apiRequest`, never `fetch` directly, so
 // error handling, JSON, the auth header and (from F1) silent token refresh behave the same everywhere.
 
+import { parseServerTiming, reportTiming } from "./timing";
+
 const BASE_URL = "/api/v1"; // forwarded to the Express backend by next.config.ts
 
 // The backend answers errors as { message, code?, details? }.
@@ -75,9 +77,10 @@ async function parseError(response: Response): Promise<ApiError> {
 async function send(path: string, options: RequestOptions): Promise<Response> {
   const { method = "GET", query, body, headers = {}, signal, auth = true } = options;
   const token = auth ? hooks.getAccessToken() : null;
+  const startedAt = performance.now();
 
   try {
-    return await fetch(buildUrl(path, query), {
+    const response = await fetch(buildUrl(path, query), {
       method,
       credentials: "same-origin", // sends the refresh cookie to /auth/* endpoints
       signal: signal ?? null,
@@ -89,6 +92,15 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
       },
       body: body !== undefined ? JSON.stringify(body) : null,
     });
+    reportTiming({
+      method,
+      path,
+      status: response.status,
+      ms: performance.now() - startedAt,
+      serverMs: parseServerTiming(response.headers.get("Server-Timing")),
+      requestId: response.headers.get("X-Request-Id"),
+    });
+    return response;
   } catch (error) {
     if (error instanceof DOMException && error.name === "AbortError") throw error;
     throw new ApiError(0, "Cannot reach the server. Check your connection and try again.", "NETWORK_ERROR");

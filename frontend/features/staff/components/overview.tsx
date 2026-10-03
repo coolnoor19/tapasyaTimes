@@ -172,14 +172,24 @@ export function Overview() {
 
       {user?.role === "ADMIN" && (
         <Card>
-          <CardContent className="flex flex-col gap-2">
-            <div className="flex items-center gap-3">
+          <CardContent className="flex flex-col gap-4">
+            <div>
               <h2 className="text-lg font-bold text-ink">Admin tools</h2>
-              <Badge tone="brand">Next phase</Badge>
+              <p className="text-sm text-muted">Change what customers can book, and who can do what.</p>
             </div>
-            <p className="text-sm text-muted">
-              Managing seats, time slots, prices, users and roles, and the audit log arrives in the next phase. Until then, everything on this side is read-only.
-            </p>
+            <div className="flex flex-wrap gap-2">
+              {[
+                { href: "/admin/seats", label: "Seats" },
+                { href: "/admin/time-slots", label: "Time slots" },
+                { href: "/admin/prices", label: "Prices" },
+                { href: "/admin/users", label: "Users and roles" },
+                { href: "/admin/audit-log", label: "Audit log" },
+              ].map((tool) => (
+                <Button key={tool.href} asChild variant="secondary" size="sm">
+                  <Link href={tool.href}>{tool.label}</Link>
+                </Button>
+              ))}
+            </div>
           </CardContent>
         </Card>
       )}
