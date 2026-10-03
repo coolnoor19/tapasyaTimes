@@ -16,7 +16,8 @@ export const bookingApi = {
 
 // One shared cache key per (slot, set of days). The date picker, the summary and the seat map (next phase)
 // ask the same question with the same key, so the answer is fetched once and reused.
+export const AVAILABILITY_PREFIX = ["booking", "availability"] as const; // every availability answer (after a booking, all are stale)
 export const availabilityKey = (timeSlotId: string | null, dates: readonly string[]) =>
-  ["booking", "availability", timeSlotId, dates.join(",")] as const;
+  [...AVAILABILITY_PREFIX, timeSlotId, dates.join(",")] as const;
 
 export const TIME_SLOTS_KEY = ["booking", "time-slots"] as const;

@@ -95,12 +95,29 @@ async function send(path: string, options: RequestOptions): Promise<Response> {
   }
 }
 
+// How far this computer's clock is from the server's (server minus local, in ms), learned from the `Date` header of
+// every answer. A hold deadline is the server's time: a countdown against a wrong local clock would lie.
+// The header only has whole seconds (the fraction is cut off), so the true time is somewhere in the second that follows:
+// half a second is added to land in the middle. That is accurate enough for a 10 minute hold.
+let serverClockOffsetMs = 0;
+
+function learnServerClock(response: Response) {
+  const header = response.headers.get("Date");
+  const serverTime = header ? Date.parse(header) : Number.NaN;
+  if (Number.isFinite(serverTime)) serverClockOffsetMs = serverTime + 500 - Date.now();
+}
+
+// "Now" according to the server.
+export const serverNow = () => Date.now() + serverClockOffsetMs;
+
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response = await send(path, options);
+  learnServerClock(response);
 
   // An expired access token: refresh it once and replay the request.
   if (response.status === 401 && options.auth !== false && (await hooks.onUnauthorized())) {
     response = await send(path, options);
+    learnServerClock(response);
   }
 
   if (!response.ok) throw await parseError(response);

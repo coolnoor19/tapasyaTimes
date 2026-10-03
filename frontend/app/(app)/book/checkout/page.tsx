@@ -1,13 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { CheckoutPlaceholder } from "@/features/seat-map/components/checkout-placeholder";
+import { Checkout } from "@/features/checkout/components/checkout";
 
-export const metadata: Metadata = { title: "Review and pay" };
+export const metadata: Metadata = { title: "Review and reserve" };
 
 export default function CheckoutPage() {
   return (
     <Suspense>
-      <CheckoutPlaceholder />
+      <Checkout />
     </Suspense>
   );
 }
