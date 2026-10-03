@@ -32,11 +32,15 @@ export function holdMinutes(booking: Pick<Booking, "expiresAt" | "createdAt">): 
   return Number.isFinite(minutes) && minutes > 0 ? minutes : HOLD_MINUTES;
 }
 
-// Milliseconds left on the hold (0 when over, or when there is no hold at all).
-export function holdRemainingMs(booking: Pick<Booking, "expiresAt">, nowMs: number): number {
+// Milliseconds left on the hold (0 when over, or when there is no hold at all). Never more than the hold itself lasts: the
+// clock estimate can be half a second off, and a fresh 10 minute hold must not read "10:01".
+export function holdRemainingMs(booking: Pick<Booking, "expiresAt"> & Partial<Pick<Booking, "createdAt">>, nowMs: number): number {
   if (!booking.expiresAt) return 0;
   const end = Date.parse(booking.expiresAt);
-  return Number.isFinite(end) ? Math.max(0, end - nowMs) : 0;
+  if (!Number.isFinite(end)) return 0;
+  const remaining = Math.max(0, end - nowMs);
+  const start = booking.createdAt ? Date.parse(booking.createdAt) : Number.NaN;
+  return Number.isFinite(start) && end > start ? Math.min(remaining, end - start) : remaining;
 }
 
 // 582000 -> "09:42"   |   65000 -> "01:05"   |   0 -> "00:00". Rounds UP, so the last second still shows "00:01".

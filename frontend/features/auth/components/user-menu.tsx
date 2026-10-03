@@ -25,9 +25,9 @@ export function UserAvatar({ firstName, lastName, className = "size-9 text-sm" }
 }
 
 // Avatar + name; opens a menu with the account details and "Sign out".
-export function UserMenu() {
+export function UserMenu({ signedOutTo }: { signedOutTo?: string } = {}) {
   const { user } = useSession();
-  const signOut = useSignOut();
+  const signOut = useSignOut(signedOutTo);
   const [signingOut, setSigningOut] = useState(false);
 
   if (!user) return null;

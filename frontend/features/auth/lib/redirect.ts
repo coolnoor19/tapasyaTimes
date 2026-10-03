@@ -15,7 +15,7 @@ export function canAccess(role: Role, path: string): boolean {
   return true;
 }
 
-const AUTH_PAGES = ["/login", "/register", "/verify-email"];
+const AUTH_PAGES = ["/login", "/register", "/verify-email", "/staff/login"];
 
 // `?next=/bookings` lets a visitor return to the page they wanted after signing in. It comes from the URL,
 // so anyone can craft it: only a plain path on THIS site is accepted. Otherwise a link such as
@@ -46,3 +46,15 @@ export function loginUrlFor(path: string, reason?: "expired"): string {
   const query = params.toString();
   return query ? `/login?${query}` : "/login";
 }
+
+// The staff portal has its own sign-in page. Same rules as loginUrlFor: only a safe on-site path is kept.
+export function staffLoginUrlFor(path: string, reason?: "expired"): string {
+  const params = new URLSearchParams();
+  const safe = safeNextPath(path);
+  if (safe && safe !== "/") params.set("next", safe);
+  if (reason) params.set("reason", reason);
+  const query = params.toString();
+  return query ? `/staff/login?${query}` : "/staff/login";
+}
+
+export const isStaffRole = (role: Role) => role === "ADMIN" || role === "MANAGER";

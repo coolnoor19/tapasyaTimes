@@ -16,11 +16,11 @@ export const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-brand-700 text-white shadow-sm hover:bg-brand-800 hover:shadow-md",
-        accent: "bg-leaf-600 text-white shadow-sm hover:bg-leaf-700 hover:shadow-md",
+        primary: "bg-action text-white shadow-sm hover:bg-action-hover hover:shadow-md",
+        accent: "bg-accent text-white shadow-sm hover:bg-accent-hover hover:shadow-md",
         secondary: "border border-line-strong bg-surface text-ink hover:border-brand-300 hover:bg-brand-50",
         ghost: "text-muted hover:bg-brand-50 hover:text-brand-800",
-        danger: "bg-danger-600 text-white shadow-sm hover:bg-danger-700",
+        danger: "bg-danger-solid text-white shadow-sm hover:bg-danger-solid-hover",
       },
       size: {
         sm: "h-9 px-3.5 text-sm",

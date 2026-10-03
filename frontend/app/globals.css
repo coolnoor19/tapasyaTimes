@@ -43,6 +43,16 @@
   --color-subtle: #8393ad;
   --color-line: #e2e9f3;
   --color-line-strong: #cbd6e6;
+  /* Solid button fills. They are separate tokens because the staff theme needs a different fill than the one it uses
+     for tinted text (brand-700 is a text colour there). */
+  --color-action: #1c46b8;
+  --color-action-hover: #1c3a94;
+  --color-accent: #0a9a5a;
+  --color-accent-hover: #087a4a;
+  --color-danger-solid: #d92d3a;
+  --color-danger-solid-hover: #b4232f;
+  /* the veil behind dialogs */
+  --color-overlay: #12204d66;
 
   /* Feedback */
   --color-danger-50: #fef2f2;
@@ -210,4 +220,73 @@ input::-ms-clear {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+}
+
+/* ---------------------------------------------------------------------------
+   Staff portal: a dark look for managers and admins, so it is obvious at a glance which side of the product
+   you are on. Nothing is restyled one by one: the same tokens are simply re-pointed inside this scope, so every
+   shared component (cards, badges, alerts, inputs, buttons) turns dark by itself. The scale for brand / leaf is
+   flipped (50 = darkest tint, 900 = lightest) because components use "50" for a tinted background and "800" for
+   text on it. The class is also put on <html> while the portal is open, so dialogs and toasts (which render
+   outside the page tree) match.
+   --------------------------------------------------------------------------- */
+.theme-staff {
+  color-scheme: dark;
+
+  --color-canvas: #0a1120;
+  --color-surface: #111b30;
+  --color-ink: #e9eefb;
+  --color-muted: #a3b2cc;
+  --color-subtle: #7a8cab;
+  --color-line: #1f2d4a;
+  --color-line-strong: #2d4068;
+  --color-overlay: #020610b3;
+  --color-action: #2f6be8;
+  --color-action-hover: #2559c7;
+  --color-accent: #0a8a52;
+  --color-accent-hover: #087843;
+  --color-danger-solid: #d92d3a;
+  --color-danger-solid-hover: #b4232f;
+
+  --color-brand-50: #14234a;
+  --color-brand-100: #182b5c;
+  --color-brand-200: #1f3b80;
+  --color-brand-300: #2b55b8;
+  --color-brand-400: #5a93f5;
+  --color-brand-500: #4a85f2;
+  --color-brand-600: #2f6be8;
+  --color-brand-700: #8fb8fa;
+  --color-brand-800: #bed6fd;
+  --color-brand-900: #dbe8fe;
+  --color-brand-950: #eff5ff;
+
+  --color-leaf-50: #0c2a21;
+  --color-leaf-100: #0f3a2c;
+  --color-leaf-200: #14553f;
+  --color-leaf-300: #1a7a57;
+  --color-leaf-400: #34d38a;
+  --color-leaf-500: #20c27b;
+  --color-leaf-600: #14b86f;
+  --color-leaf-700: #6ee7ad;
+  --color-leaf-800: #a6f3cb;
+  --color-leaf-900: #d1fae4;
+
+  --color-danger-50: #3a1519;
+  --color-danger-600: #ff6b76;
+  --color-danger-700: #ff9aa2;
+  --color-warn-50: #33240c;
+  --color-warn-600: #f0a53a;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 16px rgb(0 0 0 / 0.25);
+  --shadow-pop: 0 8px 30px rgb(0 0 0 / 0.55);
+  --shadow-ring: 0 0 0 4px rgb(90 147 245 / 0.28);
+
+  background: var(--color-canvas);
+  color: var(--color-ink);
+}
+html.theme-staff {
+  background: var(--color-canvas);
+}
+.theme-staff ::selection {
+  background: var(--color-brand-300);
 }
