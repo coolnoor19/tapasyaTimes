@@ -105,20 +105,23 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export function parseSelectionParams(
   params: { get(name: string): string | null },
   now: IndiaNow,
-): { slotId: string | null; dates: DateString[] } {
+): { slotId: string | null; dates: DateString[]; seatId: string | null } {
   const slot = params.get("slot")?.trim() ?? "";
+  const seat = params.get("seat")?.trim() ?? "";
   const raw = (params.get("dates") ?? "").split(",").map((part) => part.trim());
 
   // Real days, not in the past, and not beyond what the calendar can show (a hand-edited address could say 2099).
   const lastMonth = addMonths(monthOf(now.date), MAX_MONTHS_AHEAD);
   const valid = raw.filter((date) => isValidDate(date) && date >= now.date && monthOf(date) <= lastMonth);
   const unique = [...new Set(valid)].sort().slice(0, MAX_DATES);
-  return { slotId: UUID.test(slot) ? slot : null, dates: unique };
+  return { slotId: UUID.test(slot) ? slot : null, dates: unique, seatId: UUID.test(seat) ? seat : null };
 }
 
-export function selectionQuery(slotId: string | null, dates: readonly DateString[]): string {
+// `seatId` is added by the seat map (next step), so a refresh there keeps the chosen seat.
+export function selectionQuery(slotId: string | null, dates: readonly DateString[], seatId: string | null = null): string {
   const parts: string[] = [];
   if (slotId) parts.push(`slot=${slotId}`);
   if (dates.length > 0) parts.push(`dates=${[...dates].sort().join(",")}`); // only digits, "-" and ",": nothing to escape
+  if (seatId) parts.push(`seat=${seatId}`);
   return parts.join("&");
 }

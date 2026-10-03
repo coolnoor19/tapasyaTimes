@@ -74,9 +74,21 @@
   --animate-shimmer: shimmer 1.6s ease-in-out infinite;
   --animate-pop: pop 0.38s var(--ease-spring) both;
   --animate-shake: shake 0.4s ease-in-out both;
+  --animate-pulse-ring: pulse-ring 2.4s ease-out infinite;
   --animate-accordion-down: accordion-down 0.28s var(--ease-out-expo);
   --animate-accordion-up: accordion-up 0.22s ease-out;
 
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(0.94);
+      opacity: 0.8;
+    }
+    70%,
+    100% {
+      transform: scale(1.22);
+      opacity: 0;
+    }
+  }
   @keyframes accordion-down {
     from {
       height: 0;

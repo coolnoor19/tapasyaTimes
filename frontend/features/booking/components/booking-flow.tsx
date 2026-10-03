@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
 import { AnimatePresence } from "motion/react";
 import { CalendarX2, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -12,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { addMonths, formatDateList, monthOf, type DateString, type MonthKey } from "@/lib/dates";
 import { isApiError } from "@/lib/api/client";
 import { useMediaQuery } from "@/hooks/use-media-query";
+import { prefetchAvailability } from "../api/prefetch";
 import { useMonthAvailability, useSelectionAvailability } from "../hooks/use-availability";
 import { useIndiaNow } from "../hooks/use-india-now";
 import { useTimeSlots } from "../hooks/use-time-slots";
@@ -32,6 +34,7 @@ interface Note {
 // (/book?slot=...&dates=...), so refreshing, or coming Back from the seat map, keeps it.
 export function BookingFlow() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const now = useIndiaNow();
   const slotsQuery = useTimeSlots();
@@ -126,6 +129,14 @@ export function BookingFlow() {
   function removeFullDays() {
     setDates(validDates.filter((date) => !fullDays.includes(date)));
     setNote(null);
+  }
+
+  // Reaching for "Choose your seat" starts loading the next screen: its code, and the seats for this exact choice
+  // (the answer is cached under the same key, so the seat map opens already filled in).
+  function warmSeatMap() {
+    if (!slot || status !== "ready") return;
+    router.prefetch("/book/seats");
+    void prefetchAvailability(queryClient, slot.id, validDates);
   }
 
   function goToSeats() {
@@ -274,6 +285,7 @@ export function BookingFlow() {
         priceRange={priceRange}
         blockedReason={blockedReason}
         onContinue={goToSeats}
+        onIntent={warmSeatMap}
         onRetry={() => selection.refetch()}
       />
     </div>

@@ -24,12 +24,14 @@ interface SelectionSummaryProps {
   // why Continue is disabled, when status is "blocked"
   blockedReason: string;
   onContinue: () => void;
+  // called when the person reaches for the button (pointer over it, or keyboard focus): time to warm up the next screen
+  onIntent: () => void;
   onRetry: () => void;
 }
 
 // The bar that slides up from the bottom once there is a selection: what was chosen, whether it can be booked,
 // and the way forward. It never covers content: the page keeps padding for it.
-export function SelectionSummary({ visible, slot, dates, status, freeSeatCount, priceRange, blockedReason, onContinue, onRetry }: SelectionSummaryProps) {
+export function SelectionSummary({ visible, slot, dates, status, freeSeatCount, priceRange, blockedReason, onContinue, onIntent, onRetry }: SelectionSummaryProps) {
   return (
     <AnimatePresence>
       {visible && slot && (
@@ -98,7 +100,7 @@ export function SelectionSummary({ visible, slot, dates, status, freeSeatCount, 
                 )}
               </div>
 
-              <Button size="lg" variant="accent" onClick={onContinue} disabled={status !== "ready"} className={cn("w-full sm:w-auto", status === "ready" && "animate-pop")}>
+              <Button size="lg" variant="accent" onClick={onContinue} onPointerEnter={onIntent} onFocus={onIntent} disabled={status !== "ready"} className={cn("w-full sm:w-auto", status === "ready" && "animate-pop")}>
                 Choose your seat
                 <ArrowRight className="size-4" />
               </Button>

@@ -1,13 +1,13 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { SeatsPlaceholder } from "@/features/booking/components/seats-placeholder";
+import { SeatSelection } from "@/features/seat-map/components/seat-selection";
 
 export const metadata: Metadata = { title: "Choose your seat" };
 
 export default function SeatsPage() {
   return (
     <Suspense>
-      <SeatsPlaceholder />
+      <SeatSelection />
     </Suspense>
   );
 }
